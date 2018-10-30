@@ -4,8 +4,9 @@
 //#include <i2c_t3.cpp>
 
 #include <Wire.h>
-#include <Adafruit_MPL3115A2.h>
-//#include <Adafruit_MPL3115A2.cpp>
+//#include <Adafruit_MPL3115A2.h>
+#include <MPL3115A2.h>
+
 
 //TWI Addresses
 int iBaro_Addr = 0xC0;
@@ -32,7 +33,8 @@ float PressureRead = 0;
 float AltRead = 0;
 
 //instance of MPL3115 (low pres sense) class
-Adafruit_MPL3115A2 Alt_Sensor = Adafruit_MPL3115A2();
+//Adafruit_MPL3115A2 Alt_Sensor = Adafruit_MPL3115A2();
+MPL3115A2 Alt_Sensor = MPL3115A2();
 
 void setup() {
   //Serial Comms for debugging
