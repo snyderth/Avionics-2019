@@ -1,5 +1,4 @@
-#ifndef __ADXL377_H__
-#define __ADXL377_H__
+
 class ADXL377{
   private:
     int xpin;
@@ -9,7 +8,6 @@ class ADXL377{
     float mapf(float,float, float, float, float);
   public:
     ADXL377();
-//    ADXL337(int, int, int);
 
     float readX();
     float readY();
@@ -19,4 +17,3 @@ class ADXL377{
     void set_y(int);
     void set_z(int);
 };
-#endif

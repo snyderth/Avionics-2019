@@ -20,14 +20,14 @@ TO DO:
 */
 /**************************************************************************/
 #include "MPL3115A2.h"
-
+#include <assert.h>
 /**************************************************************************/
 /*!
 	@brief  Instantiates a new MPL3115A2 class
 */
 /**************************************************************************/
 MPL3115A2::MPL3115A2() {
-
+	Serial.println("Alt sensor initialized");
 }
 
 
@@ -36,16 +36,24 @@ MPL3115A2::MPL3115A2() {
 	@brief  Setups the HW (reads coefficients values, etc.)
 */
 /**************************************************************************/
-boolean MPL3115A2::begin() {
+boolean MPL3115A2::begin(uint8_t sda, uint8_t scl) {
 	//start twi transmission
+	Wire.setSDA(sda);
+	Wire.setSCL(scl);
 	Wire.begin();
+	_i2c = &Wire;
 	//UPDATE: init i2c globally and remove from sensor init
-
+	Serial.println("communication from uC to sensor begun");
 	//read from expected address, check return
 	uint8_t whoami = read8(MPL3115A2_WHOAMI);
+	Serial.println("Not hung on read8");
 	if (whoami != 0xC4) {
+		Serial.println("Incorrect Address");
 		return false;
 	}
+
+	Serial.println("Correct Address");
+
 
 	//UPDATE: ADD RESET BEFORE CONFIGURATION TO CLEAR FLAGS/DATA
 
@@ -302,10 +310,13 @@ float MPL3115A2::getTemperature() {
 */
 /**************************************************************************/
 uint8_t MPL3115A2::read8(uint8_t a) {
+	// Serial.printf("Attempting to read from the register %p",a);
   _i2c->beginTransmission(MPL3115A2_ADDRESS); // start transmission to device
-  _i2c->write(a); // sends register address to read from
-  _i2c->endTransmission(false); // end transmission
-
+	// Serial.printf("Reading from %p", MPL3115A2_ADDRESS);
+	_i2c->write(a); // sends register address to read from
+  // uint8_t result = 
+	_i2c->endTransmission(false); // end transmission
+	// Serial.printf("Result of transmission: %d", result);
   _i2c->requestFrom((uint8_t)MPL3115A2_ADDRESS, (uint8_t)1);// send data n-bytes read
   return _i2c->read(); // receive DATA
 }

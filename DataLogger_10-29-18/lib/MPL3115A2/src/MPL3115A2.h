@@ -192,7 +192,7 @@ class MPL3115A2 {
 public:
 	MPL3115A2();
 	// boolean begin(TwoWire *twoWire = &Wire);
-	boolean begin(void);
+	boolean begin(uint8_t scl, uint8_t sda);
 	float readReadyPressure(void);	//ISR call -KO
 	float getPressure(void);
 	float getAltitude(void);

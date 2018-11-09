@@ -3,9 +3,12 @@
 //#include <i2c_t3.h>
 //#include <i2c_t3.cpp>
 
+#include <ADXL377.h>
+
 #include <Wire.h>
 //#include <Adafruit_MPL3115A2.h>
 #include <MPL3115A2.h>
+
 
 
 //TWI Addresses
@@ -31,22 +34,23 @@ const unsigned long BLINK_TIME = 1000; //ms
 //sensor read variables
 float PressureRead = 0;
 float AltRead = 0;
-
 //instance of MPL3115 (low pres sense) class
 //Adafruit_MPL3115A2 Alt_Sensor = Adafruit_MPL3115A2();
 MPL3115A2 Alt_Sensor = MPL3115A2();
 
 void setup() {
   //Serial Comms for debugging
-  Serial.begin(9600);
+  Serial.begin(115200);
+  while(!Serial){}
 
   Serial.println("Start");
+
   //TWI setup
   //Wire.setSDA(iSDA_Pin);  //set SDA Pin
   //Wire.setSCL(iSCL_Pin);  //set SCL Pin
   //Wire.begin();           //start TWI comm
 
-  Alt_Sensor.begin();       //initialize altimeter
+  Alt_Sensor.begin(iSDA_Pin, iSCL_Pin);       //initialize altimeter
 
   pinMode(pLED, OUTPUT);
 }
@@ -55,7 +59,7 @@ void loop() {
   timeCurMS = millis();
 
   PressureRead = Alt_Sensor.getPressure();
-  //AltRead = Alt_Sensor.getAltitude();
+  AltRead = Alt_Sensor.getAltitude();
 
   //serial output for debug
 
@@ -73,15 +77,17 @@ void loop() {
   //Serial.println("Time: ");
   //delay(1000);
   //heartbeat blink:
-  /*
+/*
   if((timeCurMS - timeBlinkMS) >= BLINK_TIME){
     if(bLED){
       bLED = false;
       digitalWrite(pLED,LOW); }
     else{
       bLED = true;
-      digitalWrite(pLED,HIGH); }
+      digitalWrite(pLED,HIGH);
+      Serial.printf("Hearbeat\n");
+     }
     timeBlinkMS = timeCurMS;
   }
-  */
+*/
 }
