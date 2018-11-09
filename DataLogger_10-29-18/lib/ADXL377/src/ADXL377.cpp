@@ -16,7 +16,6 @@ Arduino IDE 1.0.5
 This code is beerware.
 Distributed as-is; no warranty is given.
 ******************************************************************************/
-#include "Arduino.h"
 #include "ADXL377.h"
 // Make sure these two variables are correct for your setup
 // int scale = 200; // 3 (±3g) for ADXL337, 200 (±200g) for ADXL377
@@ -67,21 +66,18 @@ Distributed as-is; no warranty is given.
 //   delay(2000); // Minimum delay of 2 milliseconds between sensor reads (500 Hz)
 // }
 ADXL377::ADXL377(){
-  xpin = 20;
-  ypin = 22;
-  zpin = 23;
+
+}
+
+void ADXL377::begin(uint8_t x, uint8_t y, uint8_t z){
+  xpin = x;
+  ypin = y;
+  zpin = z;
   pinMode(xpin, INPUT);
   pinMode(ypin, INPUT);
   pinMode(zpin, INPUT);
 
 }
-
-/*ADXL377::ADXL377(int x, int y, int z):xpin(x),ypin(y),zpin(z){
-  pinMode(xpin, INPUT);
-  pinMode(ypin, INPUT);
-  pinMode(zpin, INPUT);
-
-}*/
 
 
 float ADXL377::readX(){
@@ -102,18 +98,18 @@ float ADXL377::readZ(){
 }
 
 
-void ADXL377::set_x(int pin){
+void ADXL377::set_x(uint8_t pin){
   xpin = pin;
   pinMode(xpin, INPUT);
 }
 
-void ADXL377::set_y(int pin){
+void ADXL377::set_y(uint8_t pin){
   ypin = pin;
   pinMode(ypin, INPUT);
 }
 
 
-void ADXL377::set_z(int pin){
+void ADXL377::set_z(uint8_t pin){
   zpin = pin;
   pinMode(zpin, INPUT);
 }

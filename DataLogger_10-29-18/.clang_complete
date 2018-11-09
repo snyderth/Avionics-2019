@@ -1,8 +1,10 @@
 -I/home/thomas/.platformio/packages/framework-arduinoteensy/cores/teensy3
+-I/home/thomas/Avionics-2019/DataLogger_10-29-18/lib/ADXL377/src
+-I/home/thomas/Avionics-2019/DataLogger_10-29-18/lib/Adafruit_Sensor/src
 -I/home/thomas/Avionics-2019/DataLogger_10-29-18/lib/MPL3115A2/src
 -I/home/thomas/.platformio/packages/framework-arduinoteensy/libraries/Wire
 -I/home/thomas/.platformio/packages/framework-arduinoteensy/libraries/Wire/utility
--I/home/thomas/Avionics-2019/DataLogger_10-29-18/lib/ADXL377/src
+-I/home/thomas/Avionics-2019/DataLogger_10-29-18/lib/Adafruit_BNO055
 -I/home/thomas/Avionics-2019/DataLogger_10-29-18/lib/Adafruit_MPL3115A2/src
 -I/home/thomas/Avionics-2019/DataLogger_10-29-18/lib/i2c_t3-master/src
 -I/home/thomas/.platformio/packages/framework-arduinoteensy/libraries/ADC
