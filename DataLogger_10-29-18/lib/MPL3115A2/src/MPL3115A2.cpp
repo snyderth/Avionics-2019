@@ -38,9 +38,11 @@ MPL3115A2::MPL3115A2() {
 /**************************************************************************/
 boolean MPL3115A2::begin(uint8_t sda, uint8_t scl) {
 	//start twi transmission
+#ifndef __MULTI_SENSOR__
 	Wire.setSDA(sda);
 	Wire.setSCL(scl);
 	Wire.begin();
+#endif
 	_i2c = &Wire;
 	//UPDATE: init i2c globally and remove from sensor init
 	Serial.println("communication from uC to sensor begun");
@@ -314,7 +316,7 @@ uint8_t MPL3115A2::read8(uint8_t a) {
   _i2c->beginTransmission(MPL3115A2_ADDRESS); // start transmission to device
 	// Serial.printf("Reading from %p", MPL3115A2_ADDRESS);
 	_i2c->write(a); // sends register address to read from
-  // uint8_t result = 
+  // uint8_t result =
 	_i2c->endTransmission(false); // end transmission
 	// Serial.printf("Result of transmission: %d", result);
   _i2c->requestFrom((uint8_t)MPL3115A2_ADDRESS, (uint8_t)1);// send data n-bytes read

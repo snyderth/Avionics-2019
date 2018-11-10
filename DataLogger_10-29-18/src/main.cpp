@@ -1,4 +1,9 @@
 #include "Arduino.h"
+#define __ACCEL_TEST__
+#define __PRESSURE_TEST__
+#define __HEARTBEAT__
+#define __IMU_TEST__
+#define __MULTI_SENSOR__
 
 //#include <i2c_t3.h>
 //#include <i2c_t3.cpp>
@@ -13,11 +18,7 @@
 #include <Adafruit_BNO055.h>
 
 
-// #define __ACCEL_TEST__
-// #define __PRESSURE_TEST__
-#define __HEARTBEAT__
-#define __IMU_TEST__
-#define __MULTI_SENSOR__
+
 
 //TWI Addresses
 int iBaro_Addr = 0xC0;
@@ -66,7 +67,7 @@ void setup() {
   #ifdef __MULTI_SENSOR__
   Wire.setSDA(iSDA_Pin);
   Wire.setSCL(iSCL_Pin);
-
+  Wire.begin();
   #endif
   //TWI setup
   //Wire.setSDA(iSDA_Pin);  //set SDA Pin
@@ -119,8 +120,7 @@ void loop() {
     //Serial.print(AltRead*0.3048);
     Serial.print("   Pressure (kPa) ");
     Serial.print(PressureRead/1000.0);
-    Serial.println();
-    timePrintMS = timeCurMS;
+    Serial.println("");
   }
 #endif
 
@@ -135,7 +135,6 @@ void loop() {
     //Serial.print("   Altitude (ft): ");
     //Serial.print(AltRead*0.3048);
     Serial.printf("   x: %fg, y: %fg, z: %fg\n",x,y,z);
-    timePrintMS = timeCurMS;
   }
 #endif
 
@@ -144,16 +143,21 @@ void loop() {
   /* Get a new sensor event */
   sensors_event_t event;
   bno.getEvent(&event);
+  if((timeCurMS - timePrintMS) >= PRINT_TIME){
+    /* Display the floating point data */
+    Serial.print("X: ");
+    Serial.print(event.orientation.x, 4);
+    Serial.print("\tY: ");
+    Serial.print(event.orientation.y, 4);
+    Serial.print("\tZ: ");
+    Serial.print(event.orientation.z, 4);
+    Serial.println("");
+  }
 
-  /* Display the floating point data */
-  Serial.print("X: ");
-  Serial.print(event.orientation.x, 4);
-  Serial.print("\tY: ");
-  Serial.print(event.orientation.y, 4);
-  Serial.print("\tZ: ");
-  Serial.print(event.orientation.z, 4);
 #endif
-
+if((timeCurMS - timePrintMS) >= PRINT_TIME){
+  timePrintMS = timeCurMS;
+}
   //Serial.println("Time: ");
   //delay(1000);
   //heartbeat blink:
