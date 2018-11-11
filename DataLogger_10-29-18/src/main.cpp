@@ -143,9 +143,10 @@ void setup() {
 
 void loop() {
 
-  if(lineCount < LINE_LIMIT){
+  //For SD card fileIO. To save the file frequently to not lose data
+  if(lineCount <= 0){
     dataFile = SD.open("datalog.txt", FILE_WRITE);
-  }else{
+  }else if(lineCount > LINE_LIMIT){
     dataFile.close();
     lineCount = 0;
   }
@@ -156,7 +157,6 @@ void loop() {
 #ifdef __PRESSURE_TEST__
   PressureRead = Alt_Sensor.getPressure();
   AltRead = Alt_Sensor.getAltitude();
-  //serial output for debug
 
   if((timeCurMS - timePrintMS) >= PRINT_TIME){
     Serial.print("Time (s): ");
