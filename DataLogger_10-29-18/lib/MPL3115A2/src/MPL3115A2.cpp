@@ -43,6 +43,9 @@ boolean MPL3115A2::begin(uint8_t sda, uint8_t scl) {
 	Wire.setSCL(scl);
 	Wire.begin();
 #endif
+
+
+
 	_i2c = &Wire;
 	//UPDATE: init i2c globally and remove from sensor init
 	Serial.println("communication from uC to sensor begun");

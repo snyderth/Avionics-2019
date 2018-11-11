@@ -1,19 +1,25 @@
 #include "Arduino.h"
+
 #define __ACCEL_TEST__
 #define __PRESSURE_TEST__
 #define __HEARTBEAT__
 #define __IMU_TEST__
 #define __MULTI_SENSOR__
-
-//#include <i2c_t3.h>
-//#include <i2c_t3.cpp>
-
-#include <ADXL377.h>
+#define LINE_LIMIT 100
 
 #include <Wire.h>
-//#include <Adafruit_MPL3115A2.h>
+
+//SD Libs
+#include <SD.h>
+#include <SPI.h>
+
+//high-g accel
+#include <ADXL377.h>
+
+//Pressure sensor
 #include <MPL3115A2.h>
 
+//IMU
 #include <Adafruit_Sensor.h> //Dep for Adafruit_BNO055
 #include <Adafruit_BNO055.h>
 
@@ -22,12 +28,15 @@
 
 //TWI Addresses
 int iBaro_Addr = 0xC0;
-//int iIMU_Addr = 0x;
-//int iPres_Addr = 0x;
+//see Adafruit_BNO055.h look for BNO055_ADDRESS_A
+
+
 
 //Hardware pins:
 int iSDA_Pin = 18;
 int iSCL_Pin = 19;
+
+//LED pins
 int pLED = 13;
 bool bLED = false;
 
@@ -45,8 +54,7 @@ const unsigned long PRINT_TIME = 100; // ms
 const unsigned long BLINK_TIME = 1000; //ms
 
 //sensor read variables
-float PressureRead = 0;
-float AltRead = 0;
+float PressureRead = 0, AltRead = 0; //Pressure and altitude
 float x = 0, y = 0, z = 0; //accel_sensor
 
 
@@ -54,60 +62,97 @@ float x = 0, y = 0, z = 0; //accel_sensor
 //Adafruit_MPL3115A2 Alt_Sensor = Adafruit_MPL3115A2();
 MPL3115A2 Alt_Sensor = MPL3115A2();
 
+//instance of high-g accelerometer
 ADXL377 accel_sensor = ADXL377();
 
+
+//instance of IMU
 Adafruit_BNO055 bno = Adafruit_BNO055(55, BNO055_ADDRESS_A);//sensor ID, i2c addr
 
+//Vars associated with SD
+const int chipSelect = BUILTIN_SDCARD;
+File dataFile;
+int lineCount;
+
+
+/*Initialize all sensors here*/
+bool init_sensors(void){
+
+  //initialize altimeter
+  #ifdef __PRESSURE_TEST__
+    //begins sensor, args only for if using single sensor on i2c
+    Alt_Sensor.begin(iSDA_Pin, iSCL_Pin);
+  #endif
+
+
+
+  #ifdef __ACCEL_TEST__ //init accel
+    accel_sensor.begin(xpin, ypin, zpin);
+  #endif
+
+
+
+  #ifdef __IMU_TEST__ //init IMU
+    Serial.println("Orientation Sensor Test"); Serial.println("");
+
+    /* Initialise the sensor */
+    if(!bno.begin())
+    {
+      /* There was a problem detecting the BNO055 ... check your connections */
+      Serial.print("Ooops, no BNO055 detected ... Check your wiring or I2C ADDR!");
+      return false;
+      while(1);
+    }
+    bno.setExtCrystalUse(true);
+  #endif
+
+  return true;
+}
+
+/*
+  Initialize wire library here. NOTE: If not using __MULTI_SENSOR__
+  the wire SCL and SDA may not be set correctly within libs.
+*/
+bool init_i2c(){
+  #ifdef __MULTI_SENSOR__
+    Wire.setSDA(iSDA_Pin); //Set SDA
+    Wire.setSCL(iSCL_Pin); //Set SCL
+    Wire.begin(); //Start i2c
+  #endif
+
+  return true;
+}
+
+
+/*Run once*/
 void setup() {
   //Serial Comms for debugging
   Serial.begin(115200);
-  while(!Serial){}
+  while(!Serial){}//
 
-  Serial.println("Start");
-  #ifdef __MULTI_SENSOR__
-  Wire.setSDA(iSDA_Pin);
-  Wire.setSCL(iSCL_Pin);
-  Wire.begin();
-  #endif
-  //TWI setup
-  //Wire.setSDA(iSDA_Pin);  //set SDA Pin
-  //Wire.setSCL(iSCL_Pin);  //set SCL Pin
-  //Wire.begin();           //start TWI comm
+  lineCount = 0;//Counter for the SD card writer to save the file
 
+  init_i2c();
+  init_sensors();
 
-
-#ifdef __PRESSURE_TEST__
-  Alt_Sensor.begin(iSDA_Pin, iSCL_Pin);       //initialize altimeter
-#endif
-
-
-
-#ifdef __ACCEL_TEST__ //init accel
-  accel_sensor.begin(xpin, ypin, zpin);
-#endif
-
-
-
-#ifdef __IMU_TEST__ //init IMU
-  Serial.println("Orientation Sensor Test"); Serial.println("");
-
-  /* Initialise the sensor */
-  if(!bno.begin())
-  {
-    /* There was a problem detecting the BNO055 ... check your connections */
-    Serial.print("Ooops, no BNO055 detected ... Check your wiring or I2C ADDR!");
-    while(1);
-  }
-  bno.setExtCrystalUse(true);
-
-#endif
-
-
+  SD.begin(chipSelect); //init SD card
   pinMode(pLED, OUTPUT);
 }
 
+
+
 void loop() {
+
+  if(lineCount < LINE_LIMIT){
+    dataFile = SD.open("datalog.txt", FILE_WRITE);
+  }else{
+    dataFile.close();
+    lineCount = 0;
+  }
+
   timeCurMS = millis();
+
+
 #ifdef __PRESSURE_TEST__
   PressureRead = Alt_Sensor.getPressure();
   AltRead = Alt_Sensor.getAltitude();
@@ -122,7 +167,18 @@ void loop() {
     Serial.print(PressureRead/1000.0);
     Serial.println("");
   }
+  if(dataFile){
+    dataFile.print("Time (s): ");
+    dataFile.print((float)timeCurMS/1000);
+    //Serial.print("   Altitude (ft): ");
+    //Serial.print(AltRead*0.3048);
+    dataFile.print("   Pressure (kPa) ");
+    dataFile.print(PressureRead/1000.0);
+    dataFile.println("");
+    lineCount++;
+  }
 #endif
+
 
 
 #ifdef __ACCEL_TEST__
@@ -135,6 +191,14 @@ void loop() {
     //Serial.print("   Altitude (ft): ");
     //Serial.print(AltRead*0.3048);
     Serial.printf("   x: %fg, y: %fg, z: %fg\n",x,y,z);
+  }
+  if(dataFile){
+    dataFile.print("Time (s): ");
+    dataFile.print((float)timeCurMS/1000);
+    //Serial.print("   Altitude (ft): ");
+    //Serial.print(AltRead*0.3048);
+    dataFile.printf("   x: %fg, y: %fg, z: %fg\n",x,y,z);
+    lineCount++;
   }
 #endif
 
@@ -153,14 +217,25 @@ void loop() {
     Serial.print(event.orientation.z, 4);
     Serial.println("");
   }
+  if(dataFile){
+      dataFile.print("X: ");
+      dataFile.print(event.orientation.x, 4);
+      dataFile.print("\tY: ");
+      dataFile.print(event.orientation.y, 4);
+      dataFile.print("\tZ: ");
+      dataFile.print(event.orientation.z, 4);
+      dataFile.println("");
+      lineCount++;
+  }
 
 #endif
 if((timeCurMS - timePrintMS) >= PRINT_TIME){
   timePrintMS = timeCurMS;
 }
-  //Serial.println("Time: ");
-  //delay(1000);
-  //heartbeat blink:
+
+
+
+
 #ifdef __HEARTBEAT__
   if((timeCurMS - timeBlinkMS) >= BLINK_TIME){
     if(bLED){
@@ -173,7 +248,7 @@ if((timeCurMS - timePrintMS) >= PRINT_TIME){
      }
     timeBlinkMS = timeCurMS;
   }
-  #endif
+#endif
 
 
 }
